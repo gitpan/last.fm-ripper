@@ -1,0 +1,13 @@
+last.fm-ripper is a small utility to save the last.fm program to individual
+mp3-files including all availabel id3-tags and the cover art (requires MP3::Tag module).
+
+Requires a valid last.fm login and password (http://www.last.fm/signup.php). 
+
+If you don't like to enter your password on the commandline last.fm-ripper asks
+for it (requires Term::ReadPassword not to be echoed to the terminal).
+
+
+Copyright (c) 2006 Jochen Schneider.  All rights reserved.
+
+This program is free software; you can redistribute it and/or modify it under
+the same terms as Perl itself.
