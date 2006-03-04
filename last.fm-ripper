@@ -113,7 +113,7 @@ if($aws_token)
 # last.fm uses a high-security password-obfuscation ;-)
 $password_md5 = md5_password($password);
 
-debug("Now trying to play URL $url for user $username with pass $password - md5hash: $password_md5\n");
+debug("\nNow trying to play URL $url for user $username with pass $password - md5hash: $password_md5\n");
 
 $sockets = IO::Select->new();
 
@@ -122,7 +122,7 @@ while (1)
   $buffer = '';
   if (!$handshake)
   {
-    debug("trying to log in\n");
+    debug("\ntrying to log in\n");
     $handshake = IO::Socket::INET->new(PeerAddr => $ws_host, PeerPort => 80, Proto => "tcp") || die "could not initialize webservice socket\n";
     $handshake_url = "/radio/handshake.php?version=$version&platform=$platform&username=$username&passwordmd5=$password_md5&debug=0";
     $request = "GET $handshake_url HTTP/1.1\r\nhost: $ws_host\r\n\r\n";
@@ -131,7 +131,7 @@ while (1)
   }
   elsif (!$tuned)
   {
-    debug("trying to tune station\n");
+    debug("\ntrying to tune station from $ws_host\n");
     $tune = IO::Socket::INET->new(PeerAddr => $ws_host, PeerPort => 80, Proto => "tcp") || die "could not initialize webservice socket\n";
     $tune_url = "/radio/adjust.php?session=$session&url=$url&debug=0";
     $request = "GET $tune_url HTTP/1.1\r\nhost: $ws_host\r\n\r\n";
@@ -140,7 +140,7 @@ while (1)
   }
   elsif (!$streaming)
   {
-    debug("requesting streaming data from $mp3_host\n");
+    debug("\nrequesting streaming data from $mp3_host\n");
     $mp3 = IO::Socket::INET->new(PeerAddr => $mp3_host, PeerPort => 80, Proto => "tcp") || die "could not initialize mp3 socket\n";
     $mp3_url = "/last.mp3?Session=$session";
     $request = "GET $mp3_url HTTP/1.1\r\nhost: $mp3_host\r\n\r\n";
@@ -154,7 +154,7 @@ while (1)
     # are we receiving mp3 data? - then ask for track info!
     if (length($mp3_data) >= 4096)
     {
-      debug("trying to get new track data\n");
+      debug("\ntrying to get new track data\n");
       sleep 3;
       $track_info = IO::Socket::INET->new(PeerAddr => $ws_host, PeerPort => 80, Proto => "tcp") || die "could not initialize webservice socket\n";
       $track_data_url = "/radio/np.php?session=$session";
@@ -245,12 +245,14 @@ while (1)
       if($buffer =~ /session=([\w\d]+)/)
       {
         $session = $1;
+		debug("\nset \$session=\"$session\"");
       }
       if($buffer =~ /stream_url=(.+)\n/)
       {
         $stream_url = $1;
-        $stream_url =~ /http:\/\/([\.\w\d]+)\//;
-        $mp3_host = $1;
+		($mp3_host=$1)=~s/http:\/\/([\.\w\d]+)[:\d]*\/.*/$1/;
+		debug("\nset \$mp3_host=\"$mp3_host\"");
+		debug("\nset \$stream_url=\"$stream_url\"");
       }
       if($session eq 'FAILED')
       {
@@ -357,6 +359,7 @@ sub debug
 {
   if ($debug)
   {
+	$|=1;
     print @_;
   }
 }
